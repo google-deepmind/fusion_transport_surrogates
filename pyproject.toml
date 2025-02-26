@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fusion_transport_surrogates"
+description = "Transport surrogate models for Tokamak fusion."
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [{name = "DeepMind"}]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Intended Audience :: Science/Research",
+]
+
+dependencies = [
+    "absl-py>=2.0.0",
+    "jax>=0.4.31",
+    "flax>=0.7.5",
+    "numpy>=1.24.1,<2.0.0",
+    "setuptools;python_version>='3.10'",
+    "immutabledict",
+]
+
+[project.optional-dependencies]
+testing = ["pytest"]
+
+[tool.setuptools.packages.find]
+include = ["fusion_transport_surrogates*"]
