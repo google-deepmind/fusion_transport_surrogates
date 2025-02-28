@@ -19,7 +19,7 @@ dependencies = [
     "absl-py>=2.0.0",
     "jax>=0.4.31",
     "flax>=0.7.5",
-    "numpy>=1.24.1,<2.0.0",
+    "numpy>2",
     "setuptools;python_version>='3.10'",
     "immutabledict",
 ]
