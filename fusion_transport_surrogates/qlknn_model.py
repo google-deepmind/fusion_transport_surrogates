@@ -142,7 +142,7 @@ class QLKNNModelConfig:
 
   def serialize(self) -> bytes:
     export_dict = dataclasses.asdict(self)
-    export_dict['network_type'] = str(export_dict['network_type'])
+    export_dict['network_type'] = export_dict['network_type'].value
     return serialization.msgpack_serialize(export_dict)
 
 
