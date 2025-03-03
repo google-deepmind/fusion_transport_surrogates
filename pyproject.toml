@@ -25,7 +25,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-testing = ["pytest"]
+testing = [
+    "pytest",
+    "pytest-xdist",
+    "pylint>=2.6.0",
+    "pyink",
+]
+
 
 [tool.setuptools.packages.find]
 include = ["fusion_transport_surrogates*"]
