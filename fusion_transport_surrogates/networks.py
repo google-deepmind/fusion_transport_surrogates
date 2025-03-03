@@ -220,7 +220,7 @@ class CGMNets(nn.Module):
     return jnp.concatenate(outputs, axis=-1)
 
 
-class NetworkType(enum.StrEnum):
+class NetworkType(enum.Enum):
   MLP = 'mlp'
   DISJOINT_MLPS = 'disjoint_mlps'
   MODE_MLPS = 'mode_mlps'
