@@ -22,7 +22,7 @@ import abc
 from collections.abc import Mapping
 import dataclasses
 import json
-from typing import Any, Final, Self
+from typing import Any, Final
 
 from absl import logging
 from flax import serialization
@@ -65,7 +65,9 @@ class QLKNNStatsData:
   input_max: jax.Array
 
   @classmethod
-  def from_stats_path(cls, stats_path: str, num_inputs: int) -> Self:
+  def from_stats_path(
+      cls, stats_path: str, num_inputs: int
+  ) -> 'QLKNNStatsData':
     logging.info('Loading data stats from %s', stats_path)
     with open(stats_path, 'r') as f:
       data_stats = json.load(f)
@@ -128,7 +130,7 @@ class QLKNNModelConfig:
   network_config: NetworkConfig
 
   @classmethod
-  def deserialize(cls, serialized_config: bytes) -> Self:
+  def deserialize(cls, serialized_config: bytes) -> 'QLKNNModelConfig':
     import_dict = serialization.msgpack_restore(serialized_config)
     if import_dict['stats_data'] is not None:
       import_dict['stats_data'] = QLKNNStatsData(**import_dict['stats_data'])
@@ -138,7 +140,7 @@ class QLKNNModelConfig:
     import_dict['network_config'] = NETWORK_CONFIG_MAP[
         import_dict['network_type']
     ](**import_dict['network_config'])
-    return QLKNNModelConfig(**import_dict)
+    return cls(**import_dict)
 
   def serialize(self) -> bytes:
     export_dict = dataclasses.asdict(self)
@@ -358,12 +360,12 @@ class QLKNNModel:
   def import_model(
       cls,
       input_path: str,
-  ) -> Self:
+  ) -> 'QLKNNModel':
     """Loads a QLKNNModel from a file."""
     logging.info('Loading QLKNNModel from %s', input_path)
     with open(input_path, 'rb') as f:
       import_dict = serialization.msgpack_restore(f.read())
-    return QLKNNModel(
+    return cls(
         config=QLKNNModelConfig.deserialize(import_dict['config']),
         params=import_dict['params'],
         version=import_dict['version'],
