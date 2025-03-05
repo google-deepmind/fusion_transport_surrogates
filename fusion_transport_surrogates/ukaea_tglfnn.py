@@ -152,6 +152,16 @@ class TGLFNNModel:
         self,
         inputs: jax.Array,
     ) -> dict[str, jax.Array]:
+        """Compute the model prediction for the given inputs.
+
+        Args:
+            inputs: The input data to the model. Must be shape (..., 15).
+
+        Returns:
+            A jax.Array of shape (..., 3, 2), where output[..., i, 0]
+            and output[..., i, 1] are the mean and variance for the ith flux output.
+            Outputs are in the order of OUTPUT_LABELS, i.e. efe_gb, efi_gb, pfi_gb.
+        """
         if self.config.normalize:
             inputs = normalize(
                 inputs, mean=self.stats.input_mean, stddev=self.stats.input_std
@@ -162,7 +172,7 @@ class TGLFNNModel:
                 self.network.apply(self.params[label], inputs, deterministic=True)
                 for label in OUTPUT_LABELS
             ],
-            axis=-1,
+            axis=-2,
         )
 
         if self.config.unnormalize:
