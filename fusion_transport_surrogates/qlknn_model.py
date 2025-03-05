@@ -29,28 +29,13 @@ from flax import serialization
 from flax import typing as flax_typing
 import flax.linen as nn
 from fusion_transport_surrogates import networks
+from fusion_transport_surrogates.utils import normalize, unnormalize
 import immutabledict
 import jax
 import jax.numpy as jnp
 import optax
 
-
-
 VERSION: Final[str] = '11D'
-
-
-def normalize(
-    data: jax.Array, *, mean: jax.Array, stddev: jax.Array
-) -> jax.Array:
-  """Normalizes data to have mean 0 and stddev 1."""
-  return (data - mean) / jnp.where(stddev == 0, 1, stddev)
-
-
-def unnormalize(
-    data: jax.Array, *, mean: jax.Array, stddev: jax.Array
-) -> jax.Array:
-  """Unnormalizes data to the orginal distribution."""
-  return data * jnp.where(stddev == 0, 1, stddev) + mean
 
 
 @dataclasses.dataclass
