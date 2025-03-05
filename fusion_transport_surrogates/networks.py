@@ -100,9 +100,9 @@ class GaussianMLPEnsemble(nn.Module):
       ],
       axis=0,
     )
-    mean = jnp.mean(ensemble_output[..., 0], axis=-1)
-    aleatoric = jnp.mean(ensemble_output[..., 1], axis=-1)
-    epistemic = jnp.var(ensemble_output[..., 0], axis=-1)
+    mean = jnp.mean(ensemble_output[..., 0], axis=0)
+    aleatoric = jnp.mean(ensemble_output[..., 1], axis=0)
+    epistemic = jnp.var(ensemble_output[..., 0], axis=0)
     return jnp.stack([mean, aleatoric + epistemic], axis=-1)
 
 
