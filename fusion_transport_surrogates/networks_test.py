@@ -22,7 +22,7 @@ import jax.numpy as jnp
 class NetworksTest(absltest.TestCase):
 
   def _test_network_io(
-      self, network: nn.Module, num_inputs: int, num_targets: int
+      self, network: nn.Module, num_inputs: int, num_targets: int, **kwargs
   ):
     """Checks that the network inputs and outputs have the correct shapes."""
     # Initialize the parameters
@@ -34,7 +34,7 @@ class NetworksTest(absltest.TestCase):
 
     # Apply the network to some input data
     inputs = jnp.ones((batch_size, num_inputs))
-    outputs = network.apply(params, inputs)
+    outputs = network.apply(params, inputs, **kwargs)
     # Check the shape of the outputs
     self.assertEqual(outputs.shape, (batch_size, num_targets))
 
@@ -62,6 +62,33 @@ class NetworksTest(absltest.TestCase):
     )
     self._test_network_io(network, num_inputs, hidden_size)
 
+  def test_gaussian_mlp(self):
+    num_inputs = 5
+    num_targets = 2 # Gaussian MLPs always have 2 outputs.
+
+    network = networks.NETWORK_MAP[networks.NetworkType.GAUSSIAN_MLP](
+        num_hiddens=2,
+        hidden_size=7,
+        dropout=0.1,
+        activation='relu',
+    )
+    self._test_network_io(network, num_inputs, num_targets, deterministic=True)
+    
+  def test_gaussian_mlp_ensemble(self):
+    num_inputs = 5
+    num_targets = 2 # Gaussian MLPs always have 2 outputs.
+    n_ensemble = 3
+    
+    network = networks.NETWORK_MAP[networks.NetworkType.GAUSSIAN_MLP_ENSEMBLE](
+        num_hiddens=2,
+        hidden_size=7,
+        dropout=0.1,
+        activation='relu',
+        n_ensemble=n_ensemble,
+    )
+    
+    self._test_network_io(network, num_inputs, num_targets, deterministic=True)      
+      
   def test_disjoint_mlps(self):
     num_inputs = 5
     num_targets = 5
