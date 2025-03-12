@@ -50,6 +50,65 @@ class MLP(nn.Module):
     return x
 
 
+class GaussianMLP(nn.Module):
+  """An MLP with dropout, outputting a mean and variance."""
+
+  num_hiddens: int
+  hidden_size: int
+  dropout: float
+  activation: str
+
+  @nn.compact
+  def __call__(
+      self,
+      x,
+      deterministic: bool = False,
+  ):
+    for _ in range(self.num_hiddens - 1):
+      x = nn.Dense(self.hidden_size)(x)
+      x = nn.Dropout(rate=self.dropout, deterministic=deterministic)(x)
+      x = _ACTIVATION_FNS[self.activation](x)
+    mean_and_var = nn.Dense(2)(x)
+    mean = mean_and_var[..., 0]
+    var = mean_and_var[..., 1]
+    var = nn.softplus(var)
+
+    return jnp.stack([mean, var], axis=-1)
+
+
+class GaussianMLPEnsemble(nn.Module):
+  """An ensemble of GaussianMLPs."""
+
+  n_ensemble: int
+  num_hiddens: int
+  hidden_size: int
+  dropout: float
+  activation: str
+
+  @nn.compact
+  def __call__(
+      self,
+      x,
+      deterministic: bool = False,
+  ):
+    ensemble_output = jnp.stack(
+        [
+            GaussianMLP(
+                self.num_hiddens,
+                self.hidden_size,
+                self.dropout,
+                self.activation,
+            )(x, deterministic=deterministic)
+            for _ in range(self.n_ensemble)
+        ],
+        axis=0,
+    )
+    mean = jnp.mean(ensemble_output[..., 0], axis=0)
+    aleatoric = jnp.mean(ensemble_output[..., 1], axis=0)
+    epistemic = jnp.var(ensemble_output[..., 0], axis=0)
+    return jnp.stack([mean, aleatoric + epistemic], axis=-1)
+
+
 class DisjointMLPs(nn.Module):
   """Disjoint MLPs, one per target."""
 
@@ -222,16 +281,20 @@ class CGMNets(nn.Module):
 
 class NetworkType(enum.Enum):
   MLP = 'mlp'
+  GAUSSIAN_MLP = 'gaussian_mlp'
   DISJOINT_MLPS = 'disjoint_mlps'
   MODE_MLPS = 'mode_mlps'
+  GAUSSIAN_MLP_ENSEMBLE = 'gaussian_mlp_ensemble'
   CGM = 'cgm'
 
 
 NETWORK_MAP: Final[Mapping[NetworkType, type[nn.Module]]] = (
     immutabledict.immutabledict({
         NetworkType.MLP: MLP,
+        NetworkType.GAUSSIAN_MLP: GaussianMLP,
         NetworkType.DISJOINT_MLPS: DisjointMLPs,
         NetworkType.MODE_MLPS: ModeMLPs,
+        NetworkType.GAUSSIAN_MLP_ENSEMBLE: GaussianMLPEnsemble,
         NetworkType.CGM: CGMNets,
     })
 )
